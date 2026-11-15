@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <IsAotCompatible>true</IsAotCompatible>
+        <Description>A validator for .NET built for speed and Native AOT, with first-class fluent rules, async validation, and DI integration. Inspired by FluentValidation.</Description>
+        <PackageTags>validation;validator;fluent;fluentvalidation;rules;guard;aot;nativeaot;trimming;source-generator;dependency-injection</PackageTags>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="../Sharp.Validator.Result/Sharp.Validator.Result.csproj" />
+    </ItemGroup>
+
+    <!-- Apply the generator + analyzer/code-fix to this project, and make them build dependencies so the DLLs exist for packing. -->
+    <ItemGroup>
+      <ProjectReference Include="../Sharp.Validator.SourceGenerator/Sharp.Validator.SourceGenerator.csproj"
+                        OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+      <ProjectReference Include="../Sharp.Validator.CodeFixes/Sharp.Validator.CodeFixes.csproj"
+                        OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="Sharp.Validator.props" Visible="false" />
+    </ItemGroup>
+
+    <!-- Ship the generator, analyzer, and code fix inside this package's analyzer slot so consumers get them
+         transitively. A pack target (not None+Pack items) so a missing DLL fails the pack loudly: silently
+         shipping without the generator would only surface when a consumer's NativeAOT registration throws. -->
+    <PropertyGroup>
+        <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);PackBuildAssets</TargetsForTfmSpecificContentInPackage>
+    </PropertyGroup>
+
+    <Target Name="PackBuildAssets">
+        <ItemGroup>
+            <_AnalyzerAsset Include="../Sharp.Validator.SourceGenerator/bin/$(Configuration)/netstandard2.0/Sharp.Validator.SourceGenerator.dll" />
+            <_AnalyzerAsset Include="../Sharp.Validator.CodeFixes/bin/$(Configuration)/netstandard2.0/Sharp.Validator.CodeFixes.dll" />
+        </ItemGroup>
+        <Error Condition="!Exists('%(_AnalyzerAsset.Identity)')"
+               Text="Analyzer payload missing: %(_AnalyzerAsset.Identity). Build the solution first; a custom OutDir/BaseOutputPath breaks this relative path." />
+        <ItemGroup>
+            <TfmSpecificPackageFile Include="@(_AnalyzerAsset)" PackagePath="analyzers/dotnet/cs" />
+            <!-- Exposes PublishAot to the analyzers; buildTransitive reaches indirect references too. -->
+            <TfmSpecificPackageFile Include="$(MSBuildThisFileDirectory)Sharp.Validator.props" PackagePath="buildTransitive" />
+        </ItemGroup>
+    </Target>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Sharp.Validator.Tests" />
+    </ItemGroup>
+
+</Project>

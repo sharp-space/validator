@@ -1,0 +1,6 @@
+{
+  "src/Sharp.Validator/ServiceCollectionExtensions.cs:AddValidatorsByReflection": {
+    "reason": "JIT coverage cannot execute the NativeAOT-only path; the native canary verifies it.",
+    "sha256": "ecac894c2055fe2d2f56dcc766eeacbc8f7bdee6140639b92354519fee2e6fd3"
+  }
+}

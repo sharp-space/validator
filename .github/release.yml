@@ -1,0 +1,19 @@
+# Sections of the release notes that GitHub generates from merged pull requests. "*" collects the pull requests that
+# no earlier section took. The maintainers label only breaking changes, and internal changes they want left out.
+changelog:
+  exclude:
+    labels:
+      - ignore-for-release
+  categories:
+    - title: Breaking changes
+      labels:
+        - breaking-change
+    - title: Changes
+      labels:
+        - "*"
+      exclude:
+        labels:
+          - dependencies
+    - title: Dependencies
+      labels:
+        - dependencies

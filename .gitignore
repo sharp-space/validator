@@ -1,0 +1,67 @@
+# Build output
+bin/
+obj/
+out/
+publish/
+artifacts/
+[Dd]ebug/
+[Rr]elease/
+
+# IDE / agent
+.vs/
+.vscode/
+.idea/
+.claude/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.sln.DotSettings.user
+*.userprefs
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+!packages/build/
+!**/[Pp]ackages/repositories.config
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.fragment.lock.json
+
+# Test results
+TestResults/
+*.coverage
+*.coveragexml
+coverage*.json
+coverage*.xml
+coverage*.info
+
+# Tools
+.tools/
+.config/dotnet-tools.json.local
+
+# BenchmarkDotNet
+BenchmarkDotNet.Artifacts/
+
+# Misc
+*.log
+*.tmp
+*.bak
+
+!test/coverage-exclusions.json
+
+__pycache__/
+
+*.pyc

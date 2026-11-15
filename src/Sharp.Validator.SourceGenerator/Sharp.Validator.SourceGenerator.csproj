@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <IsRoslynComponent>true</IsRoslynComponent>
+        <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+        <!-- Ships inside the Sharp.Validator package as an analyzer; never as its own package or runtime dependency. -->
+        <IsPackable>false</IsPackable>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" ExcludeAssets="runtime" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- Roslyn release tracking reads these by file name. Microsoft.CodeAnalysis.Analyzers adds them on its own only
+             when they sit beside the project, so from Properties they are listed here. -->
+        <AdditionalFiles Include="Properties/AnalyzerReleases.Shipped.md" />
+        <AdditionalFiles Include="Properties/AnalyzerReleases.Unshipped.md" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Sharp.Validator.SourceGenerator.Tests" />
+    </ItemGroup>
+
+</Project>

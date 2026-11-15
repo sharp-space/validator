@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <!-- InfrastructureSurfaceTests loads this library by name before any of its code runs, so AddValidators has to run
+         the module initializer that registers the generated registrar. That is why it is built with the generator. -->
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="../../src/Sharp.Validator/Sharp.Validator.csproj" />
+        <ProjectReference Include="../../src/Sharp.Validator.SourceGenerator/Sharp.Validator.SourceGenerator.csproj"
+                          OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+</Project>

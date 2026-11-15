@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <ServerGarbageCollection>true</ServerGarbageCollection>
+        <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+        <RootNamespace>Sharp.Validator.ComparisonBenchmarks</RootNamespace>
+        <DefineConstants>$(DefineConstants);COMPARISON_BENCHMARKS</DefineConstants>
+        <IsPackable>false</IsPackable>
+        <IsTestProject>false</IsTestProject>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="../../src/Sharp.Validator/Sharp.Validator.csproj" />
+    </ItemGroup>
+
+    <!-- Compile the shared inputs and Sharp rules in both executables, without referencing a benchmark executable. -->
+    <ItemGroup>
+        <Compile Include="../Sharp.Validator.Benchmarks/Setup.cs" Link="Shared/Setup.cs" />
+        <Compile Include="../Sharp.Validator.Benchmarks/Fixtures/Models.cs" Link="Shared/Models.cs" />
+        <Compile Include="../Sharp.Validator.Benchmarks/Fixtures/Validators.cs" Link="Shared/Validators.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="BenchmarkDotNet" />
+        <PackageReference Include="FluentValidation" />
+    </ItemGroup>
+
+</Project>

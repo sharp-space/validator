@@ -1,0 +1,24 @@
+name: Feature request
+description: Propose a new API or a change in behavior.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: "Sharp.Validator is Native AOT- and trim-safe by design, so a proposal that needs runtime reflection to validate or to register validators needs a design based on the source generator."
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What can't you do today, or can't do cleanly?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed API or behavior
+      description: Sketch the code you would like to write.
+      render: csharp
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered

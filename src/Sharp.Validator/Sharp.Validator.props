@@ -1,0 +1,7 @@
+<Project>
+    <!-- SVL010 recommends [GeneratedRegex] only in an app published with NativeAOT, so the analyzer reads PublishAot.
+         Set PublishAot in the project file, as .NET recommends, so the IDE and ordinary builds see it too. -->
+    <ItemGroup>
+        <CompilerVisibleProperty Include="PublishAot" />
+    </ItemGroup>
+</Project>

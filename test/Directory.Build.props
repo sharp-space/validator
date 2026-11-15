@@ -1,0 +1,43 @@
+<Project>
+    <PropertyGroup>
+        <IsPackable>false</IsPackable>
+        <IsTestProject>false</IsTestProject>
+    </PropertyGroup>
+
+    <Import Project="$(MSBuildThisFileDirectory)../Directory.Build.props"
+            Condition="Exists('$(MSBuildThisFileDirectory)../Directory.Build.props')" />
+
+    <PropertyGroup>
+        <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <!-- Native AOT canaries are separate executables; fixtures and benchmarks are not test projects. -->
+    <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('Tests')) And !$(MSBuildProjectName.EndsWith('.AotTests'))">
+        <IsTestProject>true</IsTestProject>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <OutputType>Exe</OutputType>
+        <!-- Cancellation tests pass their own tokens; fast unit tests need no runner cancellation token. -->
+        <NoWarn>$(NoWarn);xUnit1051</NoWarn>
+        <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+    </PropertyGroup>
+
+    <ItemGroup Condition="$(MSBuildProjectName.EndsWith('Tests')) And !$(MSBuildProjectName.EndsWith('.AotTests'))">
+        <PackageReference Include="xunit.v3" />
+        <PackageReference Include="Microsoft.Testing.Platform" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" PrivateAssets="all" />
+        <PackageReference Include="coverlet.MTP" PrivateAssets="all" />
+    </ItemGroup>
+
+    <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('Benchmarks'))">
+        <BenchmarkDotNetArtifactsPath>$(MSBuildThisFileDirectory)artifacts/benchmark/$(MSBuildProjectName)</BenchmarkDotNetArtifactsPath>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(BenchmarkDotNetArtifactsPath)' != ''">
+        <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+            <_Parameter1>BenchmarkDotNetArtifactsPath</_Parameter1>
+            <_Parameter2>$(BenchmarkDotNetArtifactsPath)</_Parameter2>
+        </AssemblyAttribute>
+    </ItemGroup>
+</Project>

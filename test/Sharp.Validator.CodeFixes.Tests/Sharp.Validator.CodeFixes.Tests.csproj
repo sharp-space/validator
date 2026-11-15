@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- Normal (not analyzer) references: the tests run the analyzer for its diagnostic and apply the fix to it. -->
+        <ProjectReference Include="../Sharp.Validator.Fixtures/Sharp.Validator.Fixtures.csproj" />
+        <ProjectReference Include="../../src/Sharp.Validator.CodeFixes/Sharp.Validator.CodeFixes.csproj" />
+        <ProjectReference Include="../../src/Sharp.Validator.SourceGenerator/Sharp.Validator.SourceGenerator.csproj" />
+        <!-- Referenced so the in-memory test compilations can resolve Sharp.Validator types. -->
+        <ProjectReference Include="../../src/Sharp.Validator/Sharp.Validator.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="Xunit" />
+    </ItemGroup>
+
+</Project>

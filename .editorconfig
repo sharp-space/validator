@@ -1,0 +1,337 @@
+# Stop searching parent directories for additional EditorConfig files.
+root=true
+
+[*]
+
+# Save text files with UTF-8 encoding.
+charset=utf-8
+
+# Use LF line endings.
+end_of_line=lf
+
+# End non-C# text files with a newline.
+insert_final_newline=true
+
+# Remove whitespace at the end of each line.
+trim_trailing_whitespace=true
+
+# Use spaces instead of tabs for indentation.
+indent_style=space
+
+# Use four spaces for each indentation level by default.
+indent_size=4
+
+[*.{csproj,props,targets,slnx,config,xml,json,proto}]
+
+# Use a 150-column limit when formatting XML files.
+resharper_xml_max_line_length=150
+
+[*.json]
+
+# Indent JSON files with two spaces.
+indent_size=2
+
+[*.cs]
+
+# --- Basics: file ending, line length, formatter tags ---
+
+# Do not add a final newline to C# files.
+insert_final_newline=false
+
+# Wrap long C# lines at 150 columns where the formatter can do so.
+resharper_csharp_max_line_length=150
+
+# Use the authors' 150-column limit for XML documentation. Even with text wrapping off, the formatter breaks a longer
+# line around its elements, and at the default limit it would break lines the authors wrote within 150.
+resharper_xmldoc_max_line_length=150
+
+# Do not indent text inside XML documentation elements.
+resharper_xmldoc_indent_text=zero_indent
+
+# The author wraps XML documentation text (CONTRIBUTING.md › Coding style); the formatter keeps every line break and
+# never wraps. Re-wrapping a paragraph can leave the punctuation after a closing tag at the start of the next line, and
+# wrapping one over-long line leaves its last words on a short line of their own.
+resharper_xmldoc_keep_user_linebreaks=true
+resharper_xmldoc_wrap_text=false
+
+# Leave an element's content on its tags' lines whatever its length; the author decides where it breaks. At a lower
+# value the formatter moves the punctuation after a long element such as a <c> pattern to a line of its own.
+resharper_xmldoc_linebreaks_inside_tags_for_elements_longer_than=1000
+
+# Recognize formatter exclusion markers in comments.
+resharper_formatter_tags_enabled=true
+
+# --- Spacing and indentation ---
+
+# Do not insert a space between a cast and its operand.
+csharp_space_after_cast=false
+
+# Insert a space between the spread operator and its operand.
+resharper_csharp_space_within_spread_pattern=true
+
+# Align raw-string content with the opening delimiter.
+resharper_csharp_indent_raw_literal_string=align
+
+# Do not align consecutive multiline binary expressions in columns.
+resharper_align_multiline_binary_expressions_chain=false
+
+# --- Blank lines ---
+
+# Do not require blank lines around multiline fields.
+resharper_csharp_blank_lines_around_field=0
+
+# Do not require blank lines around single-line fields.
+resharper_csharp_blank_lines_around_single_line_field=0
+
+# Require one blank line around single-line auto or abstract properties and events.
+resharper_blank_lines_around_single_line_auto_property=1
+
+# Require one blank line around single-line methods.
+resharper_csharp_blank_lines_around_single_line_invocable=1
+
+# --- Keep existing line breaks and arrangement ---
+
+# Do not preserve the existing attribute arrangement; place attributes on their own line above the member.
+resharper_csharp_keep_existing_attribute_arrangement=false
+
+# Put a type, method, property, indexer, event or field attribute on its own line whatever its length.
+resharper_csharp_place_type_attribute_on_same_line=never
+resharper_csharp_place_method_attribute_on_same_line=never
+resharper_csharp_place_accessorholder_attribute_on_same_line=never
+resharper_csharp_place_field_attribute_on_same_line=never
+
+# Keep a parameter's attributes on the parameter's line. Parameters have no placement setting of their own; in a
+# chopped list, an attribute section longer than this moves to a line of its own (the default is 38).
+resharper_csharp_max_attribute_length_for_same_line=150
+
+# Preserve the existing arrangement of embedded statements where supported.
+resharper_csharp_keep_existing_embedded_arrangement=true
+
+# Preserve user-inserted line breaks in expression-bodied members.
+resharper_csharp_keep_existing_expr_member_arrangement=true
+
+# Preserve existing line breaks in object, array, and collection initializers.
+resharper_csharp_keep_existing_initializer_arrangement=true
+
+# Preserve existing line breaks in list patterns and collection expressions.
+resharper_csharp_keep_existing_list_patterns_arrangement=true
+
+# Preserve user-inserted line breaks around declaration parentheses.
+resharper_csharp_keep_existing_declaration_parens_arrangement=true
+
+# --- Line wrapping ---
+
+# Put each parameter on its own line when the signature is long or multiline.
+resharper_csharp_wrap_parameters_style=chop_if_long
+
+# Place the first parameter on a new line when the signature wraps.
+resharper_csharp_wrap_after_declaration_lpar=true
+
+# Wrap before the closing parenthesis of a multiline method declaration.
+resharper_csharp_wrap_before_declaration_rpar=true
+
+# Wrap before the closing parenthesis of a multiline primary constructor parameter list.
+resharper_wrap_before_primary_constructor_declaration_rpar=true
+
+# Allow type constraints on the same line as the declaration.
+resharper_csharp_place_type_constraints_on_same_line=true
+
+# Wrap ternary expressions when they exceed the configured line length.
+resharper_csharp_wrap_ternary_expr_style=wrap_if_long
+
+# Allow object initializer members to share a line.
+csharp_new_line_before_members_in_object_initializers=false
+
+# --- Expression bodies ---
+
+# Suggest expression-bodied accessors when applicable.
+csharp_style_expression_bodied_accessors=true:suggestion
+
+# Suggest expression-bodied constructors when applicable.
+csharp_style_expression_bodied_constructors=true:suggestion
+
+# Suggest expression-bodied methods when applicable.
+csharp_style_expression_bodied_methods=true:suggestion
+
+# Suggest expression-bodied properties when applicable.
+csharp_style_expression_bodied_properties=true:suggestion
+
+# Prefer expression bodies for local functions when applicable.
+resharper_local_function_body=expression_body
+
+# Keep => at the end of the line when an expression-bodied member wraps.
+resharper_csharp_wrap_before_arrow_with_expressions=false
+
+# --- var and explicit types ---
+
+# Suggest var where the more specific var preferences do not apply.
+csharp_style_var_elsewhere=true:suggestion
+
+# Suggest var for variables with built-in types.
+csharp_style_var_for_built_in_types=true:suggestion
+
+# Suggest var when the type is apparent from the initializer.
+csharp_style_var_when_type_is_apparent=true:suggestion
+
+# Show var or explicit-type style violations for built-in types as suggestions.
+resharper_suggest_var_or_type_built_in_types_highlighting=suggestion
+
+# Show var or explicit-type style violations for simple types as suggestions.
+resharper_suggest_var_or_type_simple_types_highlighting=suggestion
+
+# Show var or explicit-type style violations in other contexts as suggestions.
+resharper_suggest_var_or_type_elsewhere_highlighting=suggestion
+
+# --- Type keywords (int vs Int32) ---
+
+# Prefer C# keywords such as int and string in declarations.
+dotnet_style_predefined_type_for_locals_parameters_members=true:suggestion
+
+# Show type keyword style violations in declarations as suggestions.
+resharper_built_in_type_reference_style_highlighting=suggestion
+
+# Prefer C# type keywords when accessing static members.
+dotnet_style_predefined_type_for_member_access=true:suggestion
+
+# Show type keyword style violations in member access as suggestions.
+resharper_built_in_type_reference_style_for_member_access_highlighting=suggestion
+
+# --- Parentheses ---
+
+# Prefer clarifying parentheses in arithmetic expressions, such as (a * b) + c.
+dotnet_style_parentheses_in_arithmetic_binary_operators=always_for_clarity:suggestion
+
+# Prefer clarifying parentheses in other binary expressions, such as (a && b) || c.
+dotnet_style_parentheses_in_other_binary_operators=always_for_clarity:suggestion
+
+# Prefer clarifying parentheses in relational expressions, such as (a < b) == c.
+dotnet_style_parentheses_in_relational_binary_operators=always_for_clarity:suggestion
+
+# Show parentheses style violations as suggestions.
+resharper_arrange_redundant_parentheses_highlighting=suggestion
+
+# --- this. qualification and base. qualifier ---
+
+# Suggest omitting unnecessary 'this.' when accessing events.
+dotnet_style_qualification_for_event=false:suggestion
+
+# Suggest omitting unnecessary 'this.' when accessing fields.
+dotnet_style_qualification_for_field=false:suggestion
+
+# Suggest omitting unnecessary 'this.' when calling methods.
+dotnet_style_qualification_for_method=false:suggestion
+
+# Suggest omitting unnecessary 'this.' when accessing properties.
+dotnet_style_qualification_for_property=false:suggestion
+
+# Show violations of the preferred 'this.' qualification style as suggestions.
+resharper_arrange_this_qualifier_highlighting=suggestion
+
+# Report unnecessary 'base.' qualifiers as suggestions.
+resharper_redundant_base_qualifier_highlighting=suggestion
+
+# --- Accessibility modifiers ---
+
+# Suggest explicit accessibility modifiers except on interface members.
+dotnet_style_require_accessibility_modifiers=for_non_interface_members:suggestion
+
+# Show type-member modifier style violations as suggestions.
+resharper_arrange_type_member_modifiers_highlighting=suggestion
+
+# Show type modifier style violations as suggestions.
+resharper_arrange_type_modifiers_highlighting=suggestion
+
+# --- Object creation, braces, and using aliases ---
+
+# Disable the inspection for object creation style when the type is evident.
+resharper_arrange_object_creation_when_type_evident_highlighting=none
+
+# Disable the inspection for object creation style when the type is not evident.
+resharper_arrange_object_creation_when_type_not_evident_highlighting=none
+
+# Prefer braces for multiline if and else statements.
+resharper_braces_for_ifelse=required_for_multiline
+
+# Do not use using aliases as the preferred way to resolve name conflicts.
+resharper_csharp_allow_alias=false
+
+# --- Language feature suggestions ---
+
+# Show suggestions to convert a constructor to a primary constructor as suggestions.
+resharper_convert_to_primary_constructor_highlighting=suggestion
+
+# Suggest UTF-8 string literals when applicable.
+csharp_style_prefer_utf8_string_literals=true:suggestion
+
+# Show suggestions to convert a local variable to a constant as suggestions.
+resharper_convert_to_constant_local_highlighting=suggestion
+
+# Disable suggestions to convert for loops to foreach loops.
+resharper_for_can_be_converted_to_foreach_highlighting=none
+
+# Disable suggestions to convert loops to LINQ queries.
+resharper_loop_can_be_converted_to_query_highlighting=none
+
+# Disable suggestions to convert foreach loops to LINQ when another GetEnumerator would be used.
+resharper_foreach_can_be_converted_to_query_using_another_get_enumerator_highlighting=none
+
+# Disable the same suggestion when only part of the loop body can be converted.
+resharper_foreach_can_be_partly_converted_to_query_using_another_get_enumerator_highlighting=none
+
+# --- Unused and unreferenced code inspections ---
+
+# Disable solution-wide inspections for classes that appear never to be instantiated.
+resharper_class_never_instantiated_global_highlighting=none
+
+# Disable local inspections for classes that appear never to be instantiated.
+resharper_class_never_instantiated_local_highlighting=none
+
+# Disable solution-wide inspections for unused types.
+resharper_unused_type_global_highlighting=none
+
+# Show classes with virtual members but no detected derived classes as hints.
+resharper_class_with_virtual_members_never_inherited_global_highlighting=hint
+
+# Show solution-wide suggestions to make members private as hints.
+resharper_member_can_be_private_global_highlighting=hint
+
+# Disable solution-wide inspections for unread positional record properties.
+resharper_not_accessed_positional_property_global_highlighting=none
+
+# Show solution-wide inspections for unused auto-property accessors as hints.
+resharper_unused_auto_property_accessor_global_highlighting=hint
+
+# --- Test and benchmark code ---
+
+[test/*Benchmarks/**.cs]
+
+# BenchmarkDotNet's generated code sets parameter properties after it creates the benchmark, so they keep a setter.
+resharper_property_can_be_made_init_only_global_highlighting=none
+
+[test/*Tests/**.cs]
+
+# Tests call synchronous members on purpose: the synchronous path under test, or CancellationTokenSource.Cancel(),
+# whose callbacks run before it returns. The second key is the same suggestion when a token is in scope.
+resharper_method_has_async_overload_highlighting=none
+resharper_method_has_async_overload_with_cancellation_highlighting=none
+
+# Fast tests pass no runner cancellation token, as test/Directory.Build.props turns off xUnit1051.
+resharper_method_supports_cancellation_highlighting=none
+
+# --- Repository-specific overrides: Sharp.Validator ---
+
+[src/Sharp.Validator/{ServiceCollectionExtensions,ValidationExtensions}.cs]
+
+# Rules and registrations return the builder or the services so calls chain; tests call them as statements.
+resharper_unused_method_return_value_global_highlighting=none
+
+[test/*Tests/**.cs]
+
+# Test models keep a natural shape, so a test may leave a member unset or unread.
+resharper_unused_auto_property_accessor_local_highlighting=none
+
+# A test model's collection can stay empty when the test only needs the member.
+resharper_collection_never_updated_local_highlighting=none
+
+# A test's closures run before its using scope ends; one that ran after it would fail the test.
+resharper_access_to_disposed_closure_highlighting=none

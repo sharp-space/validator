@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!-- Built WITH the generator but declares no validator: the generator still emits an empty registrar, which the
+             AOT canary scans to prove that an assembly with nothing to register doesn't hit the no-registrar guard. -->
+        <ProjectReference Include="../../src/Sharp.Validator/Sharp.Validator.csproj" />
+        <ProjectReference Include="../../src/Sharp.Validator.SourceGenerator/Sharp.Validator.SourceGenerator.csproj"
+                          OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+</Project>

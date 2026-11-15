@@ -1,0 +1,24 @@
+<Project>
+    <!-- Expand the shared config per project without copying machine-specific paths into source control. -->
+    <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
+        <GenerateTestingPlatformConfigurationFile>false</GenerateTestingPlatformConfigurationFile>
+        <SharedTestConfiguration>$(IntermediateOutputPath)$(AssemblyName).testconfig.json</SharedTestConfiguration>
+    </PropertyGroup>
+    <ItemGroup Condition="'$(IsTestProject)' == 'true'">
+        <None Include="$(SharedTestConfiguration)" TargetPath="$(AssemblyName).testconfig.json"
+              CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" />
+    </ItemGroup>
+    <Target Name="GenerateSharedTestConfiguration" BeforeTargets="AssignTargetPaths" Condition="'$(IsTestProject)' == 'true'">
+        <MakeDir Directories="$(IntermediateOutputPath)" />
+        <PropertyGroup>
+            <_SharedResultsPath>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)artifacts/coverage/$(MSBuildProjectName)').Replace('\', '/'))</_SharedResultsPath>
+            <_SharedTestConfigurationText>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)testconfig.json').Replace('__RESULTS_DIRECTORY__', '$(_SharedResultsPath)'))</_SharedTestConfigurationText>
+        </PropertyGroup>
+        <WriteLinesToFile File="$(SharedTestConfiguration)" Lines="$(_SharedTestConfigurationText)"
+                          Overwrite="true" WriteOnlyWhenDifferent="true" />
+    </Target>
+    <!-- Only delete repository-owned results. No-build runs are checked against their latest TRX receipt. -->
+    <Target Name="ClearPreviousTestResults" BeforeTargets="Build;_TestRunStart" Condition="'$(IsTestProject)' == 'true'">
+        <RemoveDir Directories="$(MSBuildThisFileDirectory)artifacts/coverage/$(MSBuildProjectName)" />
+    </Target>
+</Project>

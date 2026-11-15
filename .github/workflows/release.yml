@@ -1,0 +1,100 @@
+# Publishes the packages to nuget.org when a maintainer publishes a GitHub release. It never creates the release.
+#
+# To release:
+# 1. Merge a pull request labeled ignore-for-release that sets the version in Directory.Build.props and moves the
+#    released diagnostics from AnalyzerReleases.Unshipped.md to AnalyzerReleases.Shipped.md.
+# 2. Draft a release tagged <Version> on the verified commit of main, use Generate release notes, and review the
+#    summary and any migration instructions. Write the first release's notes by hand: features, packages, README link.
+# 3. Publish the draft. The job checks the tag against the package version before it pushes to nuget.org.
+# 4. Check the packages, the symbols, and the release notes link on nuget.org.
+# Retry a transient failure. If code must change, reuse the version only when no package was published; otherwise
+# release the next version. Validator must be published before Mediator moves to that version.
+#
+# One-time setup: set the Actions variable NUGET_USER to the nuget.org profile name, not an email address; for
+# organization-owned packages, use the individual profile associated with the policy. On nuget.org, register a Trusted
+# Publishing policy owned by the sharp organization for sharp-space/validator and workflow release.yml (file name only),
+# with Environment left empty. Publishing exchanges a GitHub OIDC token for a short-lived key through NuGet/login, so no
+# API key secret is stored.
+
+name: Release
+run-name: Publish ${{ github.event.release.tag_name }}
+permissions:
+  contents: read
+defaults:
+  run:
+    shell: bash
+env:
+  DOTNET_NOLOGO: 'true'
+  DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out source
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      with:
+        fetch-depth: 0
+        ref: "${{ github.event.release.tag_name || github.sha }}"
+    - name: Set up .NET SDK
+      uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73
+      with:
+        dotnet-version: '10.0.x'
+    - name: Validate release tag
+      shell: bash
+      env:
+        RELEASE_TAG: "${{ github.event.release.tag_name }}"
+      run: |
+        version="$(dotnet msbuild src/Sharp.Validator/Sharp.Validator.csproj -getProperty:Version -nologo)"
+        if [ "$RELEASE_TAG" != "$version" ]; then
+          echo "::error::Release tag '$RELEASE_TAG' must equal '$version'"
+          exit 1
+        fi
+    - name: Validate trusted publishing configuration
+      env:
+        NUGET_USER: "${{ vars.NUGET_USER }}"
+      run: |-
+        if [ -z "$NUGET_USER" ]; then
+          echo "::error::NUGET_USER is not configured; add your nuget.org profile name under Settings > Secrets and variables > Actions > Variables"
+          exit 1
+        fi
+    - name: Build
+      run: dotnet build Sharp.Validator.slnx -c Release -warnaserror
+    - name: Test
+      run: dotnet test --solution Sharp.Validator.slnx -c Release --no-build
+    - name: Pack
+      run: dotnet pack Sharp.Validator.slnx -c Release --no-build --include-symbols
+        -p:SymbolPackageFormat=snupkg -o artifacts/packages
+    - name: Verify package contents
+      run: ".github/scripts/verify-packages.sh artifacts/packages"
+    - name: Upload packages
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+      with:
+        name: packages
+        path: |-
+          artifacts/packages/*.nupkg
+          artifacts/packages/*.snupkg
+        if-no-files-found: error
+    - name: Authenticate NuGet publishing
+      id: nuget_login
+      uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841
+      with:
+        user: "${{ vars.NUGET_USER }}"
+    - name: Publish packages
+      shell: bash
+      env:
+        NUGET_API_KEY: "${{ steps.nuget_login.outputs.NUGET_API_KEY }}"
+      run: 'dotnet nuget push ''artifacts/packages/*.nupkg'' --source https://api.nuget.org/v3/index.json
+        --api-key "$NUGET_API_KEY" --skip-duplicate
+
+        '
+    permissions:
+      contents: read
+      id-token: write
+concurrency:
+  group: release-${{ github.event.release.tag_name || github.ref }}
+  cancel-in-progress: false
+on:
+  release:
+    types:
+    - published

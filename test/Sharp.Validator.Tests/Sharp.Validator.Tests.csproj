@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="../../src/Sharp.Validator/Sharp.Validator.csproj" />
+        <ProjectReference Include="../Sharp.Validator.LibraryFixtures/Sharp.Validator.LibraryFixtures.csproj" />
+        <!-- The in-memory compilation helpers, for the tests that pin which declarations raise a nullable warning. -->
+        <ProjectReference Include="../Sharp.Validator.Fixtures/Sharp.Validator.Fixtures.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="Xunit" />
+        <Using Include="Sharp.Validator" />
+        <Using Include="Sharp.Validator.Result" />
+        <Using Include="Sharp.Validator.Validators" />
+        <Using Include="Sharp.Validator.Tests.Fixtures" />
+    </ItemGroup>
+
+</Project>

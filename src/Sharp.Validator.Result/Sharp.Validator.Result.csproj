@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <IsAotCompatible>true</IsAotCompatible>
+        <Description>Dependency-free validation result contracts for Sharp.Validator — ValidationResult, ValidationError, ValidationException. Reference this alone from layers that only consume validation outcomes.</Description>
+        <PackageTags>validation;validator;result;contracts;sharp-validator</PackageTags>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!-- The validators hand each run's error list to the result they return without a copy. -->
+        <InternalsVisibleTo Include="Sharp.Validator" />
+    </ItemGroup>
+
+</Project>

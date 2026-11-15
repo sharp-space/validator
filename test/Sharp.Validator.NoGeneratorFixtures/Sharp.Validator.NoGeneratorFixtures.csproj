@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!-- Deliberately NO analyzer reference: this assembly must ship WITHOUT a generated registrar so the
+             AOT canary can assert that AddValidators(assembly) fails loudly instead of silently scanning. -->
+        <ProjectReference Include="../../src/Sharp.Validator/Sharp.Validator.csproj" />
+    </ItemGroup>
+
+</Project>

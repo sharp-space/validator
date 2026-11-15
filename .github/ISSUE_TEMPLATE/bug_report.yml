@@ -1,0 +1,53 @@
+name: Bug report
+description: Something behaves incorrectly, crashes, or reports a wrong diagnostic.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please search the existing issues first. To report a security vulnerability, do not open an issue; follow the
+        [security policy](https://github.com/sharp-space/validator/security/policy) instead.
+  - type: input
+    id: version
+    attributes:
+      label: Package and version
+      description: The affected Sharp.Validator package or packages, with their version.
+      placeholder: "Sharp.Validator 1.0.0"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: "The smallest code that shows the problem, ideally a failing test: a validator, a model, and the input that it judges wrongly."
+      placeholder: |
+        var validator = new Validator<Person>(x => x.Property(p => p.Name).NotEmpty());
+        var result = validator.Validate(new Person { Name = "" });
+      render: csharp
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include the exception with its stack trace, or the diagnostic ID and message.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: "The .NET SDK and runtime version, the OS, and whether you publish with trimming or Native AOT. For a problem with text, such as a message, a regex, or an enum name, include the current culture."
+      placeholder: ".NET SDK 10.0.100, macOS 15, Native AOT"
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context

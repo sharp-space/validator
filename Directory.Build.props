@@ -1,0 +1,33 @@
+<Project>
+    <PropertyGroup>
+        <Version>1.0.0</Version>
+        <Authors>Sharp</Authors>
+        <Company>Sharp</Company>
+        <Copyright>© 2026 Sharp</Copyright>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <RepositoryUrl>https://github.com/sharp-space/validator</RepositoryUrl>
+        <PackageProjectUrl>https://github.com/sharp-space/validator</PackageProjectUrl>
+        <RepositoryType>git</RepositoryType>
+    </PropertyGroup>
+
+    <!-- Generate XML docs for shipping libraries (not test projects). The condition sits on the group, not
+         the property, so MSBuild XML schema validators don't flag it as "Condition not allowed here". -->
+    <PropertyGroup Condition="'$(IsTestProject)' != 'true'">
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <!-- SourceLink maps PDBs to the repository and commit. It ships in the .NET SDK (8+), so no package reference is needed. -->
+    <PropertyGroup Condition="'$(IsTestProject)' != 'true'">
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    </PropertyGroup>
+
+    <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)README.md')">
+        <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" Visible="false" />
+    </ItemGroup>
+</Project>

@@ -1,0 +1,24 @@
+<Project>
+    <PropertyGroup>
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageVersion Include="BenchmarkDotNet" Version="0.15.8" />
+        <PackageVersion Include="FluentValidation" Version="12.2.0" />
+        <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
+        <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.14.0" />
+        <!-- Keep the AOT canary on the existing minimum DI version. -->
+        <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0"
+                        Condition="'$(MSBuildProjectName)' == 'Sharp.Validator.AotTests'" />
+        <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.15"
+                        Condition="'$(MSBuildProjectName)' != 'Sharp.Validator.AotTests'" />
+        <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.0" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageVersion Include="xunit.v3" Version="4.0.3" />
+        <PackageVersion Include="Microsoft.Testing.Platform" Version="2.5.3" />
+        <PackageVersion Include="Microsoft.Testing.Extensions.TrxReport" Version="2.5.3" />
+        <PackageVersion Include="coverlet.MTP" Version="10.1.0" />
+    </ItemGroup>
+</Project>

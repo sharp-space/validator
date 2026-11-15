@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <!-- The Roslyn test helpers that the analyzer, generator, code fix, and nullable annotation tests share: the
+         references of an in-memory compilation, the build properties an analyzer reads, and a stub of a Roslyn
+         interface. A helper only one test project uses stays in that project's own Fixtures/ folder. It declares no
+         validators and does not apply the validator generator. Sharp.Validator.LibraryFixtures is the library the unit
+         tests load by name. -->
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,6 @@
+<Project>
+    <!-- VersionPrefix and VersionSuffix have been resolved by the SDK before this file is imported. -->
+    <PropertyGroup>
+        <PackageReleaseNotes>https://github.com/sharp-space/validator/releases/tag/$(Version)</PackageReleaseNotes>
+    </PropertyGroup>
+</Project>

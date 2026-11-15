@@ -1,0 +1,27 @@
+<Solution>
+  <Folder Name="/Core/">
+    <Project Path="src/Sharp.Validator/Sharp.Validator.csproj" />
+    <Project Path="src/Sharp.Validator.Result/Sharp.Validator.Result.csproj" />
+    <Project Path="src/Sharp.Validator.SourceGenerator/Sharp.Validator.SourceGenerator.csproj" />
+    <Project Path="src/Sharp.Validator.CodeFixes/Sharp.Validator.CodeFixes.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="test/Sharp.Validator.AotTests/Sharp.Validator.AotTests.csproj" />
+  </Folder>
+  <Folder Name="/Tests/Benchmarks/">
+    <Project Path="test/Sharp.Validator.Benchmarks/Sharp.Validator.Benchmarks.csproj" />
+    <Project Path="test/Sharp.Validator.ComparisonBenchmarks/Sharp.Validator.ComparisonBenchmarks.csproj" />
+  </Folder>
+  <Folder Name="/Tests/Fixtures/">
+    <Project Path="test/Sharp.Validator.Fixtures/Sharp.Validator.Fixtures.csproj" />
+    <Project Path="test/Sharp.Validator.LibraryFixtures/Sharp.Validator.LibraryFixtures.csproj" />
+    <Project Path="test/Sharp.Validator.NoGeneratorFixtures/Sharp.Validator.NoGeneratorFixtures.csproj" />
+    <Project Path="test/Sharp.Validator.NoValidatorFixtures/Sharp.Validator.NoValidatorFixtures.csproj" />
+  </Folder>
+  <Folder Name="/Tests/Packages/">
+    <Project Path="test/Sharp.Validator.CodeFixes.Tests/Sharp.Validator.CodeFixes.Tests.csproj" />
+    <Project Path="test/Sharp.Validator.Result.Tests/Sharp.Validator.Result.Tests.csproj" />
+    <Project Path="test/Sharp.Validator.SourceGenerator.Tests/Sharp.Validator.SourceGenerator.Tests.csproj" />
+    <Project Path="test/Sharp.Validator.Tests/Sharp.Validator.Tests.csproj" />
+  </Folder>
+</Solution>

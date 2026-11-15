@@ -1,0 +1,76 @@
+namespace Sharp.Validator.Tests.Accessors;
+
+// The static accessor caches keyed a path-faithful selector by expression.ToString(), which rendered the whole selector
+// for every validator built, a Scoped one in every scope. They now key it by its dotted path, its body's node type and
+// the type under its one unary. Selectors that share a path but not their meaning must still get accessors of their
+// own, whichever is built first: an unchecked and a checked cast of one member, where the checked one throws and the
+// other wraps; and a cast of a nullable member and of its Value, since the path leaves out the Value hop. A null member
+// reads as null through the first and as no value through the second, so a NotNull on the first fails while the second
+// skips its chain. Sharing an accessor would have let NotNull pass a null.
+public sealed class AccessorKeyTests
+{
+    [Fact]
+    public void CheckedCast_AfterAnUncheckedOneOfTheSameMember_StillChecks()
+    {
+        var wrapping = new Validator<WrapsFirst>(x => x.Property(model => (long)model.Big).Must(value => value == -1));
+        var checking = new Validator<WrapsFirst>(x => x.Property(model => checked((long)model.Big)).Must(value => value == -1));
+
+        Assert.True(wrapping.Validate(new WrapsFirst()).IsValid);
+        Assert.Throws<OverflowException>(() => checking.Validate(new WrapsFirst()));
+    }
+
+    [Fact]
+    public void UncheckedCast_AfterACheckedOneOfTheSameMember_StillWraps()
+    {
+        var checking = new Validator<ChecksFirst>(x => x.Property(model => checked((long)model.Big)).Must(value => value == -1));
+        var wrapping = new Validator<ChecksFirst>(x => x.Property(model => (long)model.Big).Must(value => value == -1));
+
+        Assert.Throws<OverflowException>(() => checking.Validate(new ChecksFirst()));
+        Assert.True(wrapping.Validate(new ChecksFirst()).IsValid);
+    }
+
+    [Fact]
+    public void CastOfANullableMember_BuiltBeforeACastOfItsValue_StillReadsNull()
+    {
+        var boxing = new Validator<BoxesFirst>(x => x.Property(model => (object?)model.Child.Age).NotNull());
+        var unwrapping = new Validator<BoxesFirst>(x => x.Property(model => (object?)model.Child.Age!.Value).NotNull());
+
+        Assert.False(boxing.Validate(new BoxesFirst()).IsValid);
+        Assert.True(unwrapping.Validate(new BoxesFirst()).IsValid);
+    }
+
+    [Fact]
+    public void CastOfANullableMember_BuiltAfterACastOfItsValue_StillReadsNull()
+    {
+        var unwrapping = new Validator<UnwrapsFirst>(x => x.Property(model => (object?)model.Child.Age!.Value).NotNull());
+        var boxing = new Validator<UnwrapsFirst>(x => x.Property(model => (object?)model.Child.Age).NotNull());
+
+        Assert.True(unwrapping.Validate(new UnwrapsFirst()).IsValid);
+        Assert.False(boxing.Validate(new UnwrapsFirst()).IsValid);
+    }
+
+    private sealed class WrapsFirst
+    {
+        public ulong Big { get; } = ulong.MaxValue;
+    }
+
+    private sealed class ChecksFirst
+    {
+        public ulong Big { get; } = ulong.MaxValue;
+    }
+
+    private sealed class Child
+    {
+        public int? Age { get; init; }
+    }
+
+    private sealed class BoxesFirst
+    {
+        public Child Child { get; } = new();
+    }
+
+    private sealed class UnwrapsFirst
+    {
+        public Child Child { get; } = new();
+    }
+}

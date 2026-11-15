@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <ServerGarbageCollection>true</ServerGarbageCollection>
+        <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+        <RootNamespace>Sharp.Validator.Benchmarks</RootNamespace>
+        <IsPackable>false</IsPackable>
+        <IsTestProject>false</IsTestProject>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="../../src/Sharp.Validator/Sharp.Validator.csproj" />
+    </ItemGroup>
+
+    <!-- The Generated accessor job (AccessorJobs.cs) builds with -p:SharpBenchmarkAccessors=Generated: the source
+         generator then precompiles the selectors, as it does for package users. Without it, members are read through
+         compiled expressions. The constant lets the build report which path it was compiled for. -->
+    <PropertyGroup Condition="'$(SharpBenchmarkAccessors)' == 'Generated'">
+        <DefineConstants>$(DefineConstants);GENERATED_ACCESSORS</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(SharpBenchmarkAccessors)' == 'Generated'">
+        <ProjectReference Include="../../src/Sharp.Validator.SourceGenerator/Sharp.Validator.SourceGenerator.csproj"
+                          OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="BenchmarkDotNet" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    </ItemGroup>
+
+</Project>

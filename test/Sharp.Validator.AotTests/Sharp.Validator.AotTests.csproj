@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+
+        <!-- Dependency-free NativeAOT gate: proves Sharp.Validator publishes clean and runs under NativeAOT.
+             A test framework can't be used here — under TrimMode=full + warn-as-error even xUnit v3's own
+             reflection/serialization internals emit IL2xxx/IL3xxx, which would mask regressions in our code. -->
+        <PublishAot>true</PublishAot>
+        <TrimMode>full</TrimMode>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <TrimmerSingleWarn>false</TrimmerSingleWarn>
+        <InvariantGlobalization>true</InvariantGlobalization>
+
+        <!-- An executable AOT canary, not a unit-test or NuGet project. -->
+        <IsTestProject>false</IsTestProject>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="../../src/Sharp.Validator/Sharp.Validator.csproj" />
+        <!-- Analyzer ProjectReferences don't flow transitively; apply the generator directly so the test
+             exercises the source-generated registration path. -->
+        <ProjectReference Include="../../src/Sharp.Validator.SourceGenerator/Sharp.Validator.SourceGenerator.csproj"
+                          OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+        <!-- Built WITHOUT the generator on purpose — the negative canary asserts its scan throws under AOT. -->
+        <ProjectReference Include="../Sharp.Validator.NoGeneratorFixtures/Sharp.Validator.NoGeneratorFixtures.csproj" />
+        <!-- Built WITH the generator but declares no validator — the canary asserts its scan registers nothing. -->
+        <ProjectReference Include="../Sharp.Validator.NoValidatorFixtures/Sharp.Validator.NoValidatorFixtures.csproj" />
+    </ItemGroup>
+
+</Project>
