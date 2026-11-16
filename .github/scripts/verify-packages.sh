@@ -27,10 +27,12 @@ require "$main_pkg" "analyzers/dotnet/cs/Sharp.Validator.SourceGenerator.dll"
 require "$main_pkg" "analyzers/dotnet/cs/Sharp.Validator.CodeFixes.dll"
 require "$main_pkg" "buildTransitive/Sharp.Validator.props"
 require "$main_pkg" "README.md"
+require "$main_pkg" "icon.png"
 
 require "$result_pkg" "lib/net10.0/Sharp.Validator.Result.dll"
 require "$result_pkg" "lib/net10.0/Sharp.Validator.Result.xml"
 require "$result_pkg" "README.md"
+require "$result_pkg" "icon.png"
 
 # Symbol packages must exist for both.
 ls "$packages_dir"/Sharp.Validator.[0-9]*.snupkg >/dev/null

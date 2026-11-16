@@ -140,10 +140,10 @@ dotnet pack Sharp.Validator.slnx -c Release --no-build \
 .github/scripts/verify-packages.sh artifacts/packages
 ```
 
-`verify-packages.sh` fails when a package lacks a file it promises: the library and its XML docs, both
-analyzer DLLs in `analyzers/dotnet/cs`, `buildTransitive/Sharp.Validator.props`, the packed `README.md`, or a symbol
-package. A package without the generator still works under the JIT and fails only when a consumer publishes with
-Native AOT, so CI packs and verifies on every pull request.
+`verify-packages.sh` fails when a package lacks a file it promises: the library and its XML docs, both analyzer DLLs in
+`analyzers/dotnet/cs`, `buildTransitive/Sharp.Validator.props`, the packed `README.md` and `icon.png`, or a symbol
+package. A package without the generator still works under the JIT and fails only when a consumer publishes with Native
+AOT, so CI packs and verifies on every pull request.
 
 ## Repository layout
 
