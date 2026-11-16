@@ -10,7 +10,6 @@ public sealed class ConstrainedGenericModelTests
     public void Chain_ThroughTheConstraint_ReportsUnderItsPath()
     {
         var error = Assert.Single(new NamedRules<Person>().Validate(new Person()).Errors);
-
         Assert.Equal("Name", error.PropertyName);
     }
 
@@ -18,8 +17,8 @@ public sealed class ConstrainedGenericModelTests
     public void NestedChain_ThroughTheConstraint_SkipsANullIntermediate()
     {
         var validator = new NamedRules<Person>();
-
         Assert.True(validator.Validate(new Person { Name = "Kim" }).IsValid);
+
         Assert.Equal(
             "Address.City",
             Assert.Single(validator.Validate(new Person { Name = "Kim", Address = new Address() }).Errors).PropertyName);
@@ -29,7 +28,6 @@ public sealed class ConstrainedGenericModelTests
     public void Elements_ThroughTheConstraint_ReportsEachElement()
     {
         var model = new Person { Name = "Kim", Tags = ["vip", ""] };
-
         Assert.Equal("Tags[1]", Assert.Single(new NamedRules<Person>().Validate(model).Errors).PropertyName);
         Assert.True(new NamedRules<Person>().Validate(new Person { Name = "Kim" }).IsValid);
     }
@@ -38,7 +36,6 @@ public sealed class ConstrainedGenericModelTests
     public void ValueTypeModel_ThroughTheConstraint_IsValidated()
     {
         var validator = new NamedRules<Pet>();
-
         Assert.Equal("Name", Assert.Single(validator.Validate(new Pet()).Errors).PropertyName);
         Assert.True(validator.Validate(new Pet { Name = "Coco" }).IsValid);
     }
@@ -49,15 +46,14 @@ public sealed class ConstrainedGenericModelTests
         var model = new Person { Address = new Address() };
 
         var result = new NamedRules<Person>().Validate(model, x => x.IncludeProperty(person => person.Address!.City));
-
         Assert.Equal("Address.City", Assert.Single(result.Errors).PropertyName);
     }
 
     [Fact]
     public void ExplicitConversion_ToATypeTheModelIs_NamesTheSameChain()
     {
+        // ReSharper disable once RedundantCast — the conversion is what the test declares; C# writes it for a generic model.
         var validator = new Validator<Person>(x => x.Property(person => ((INamed)person).Name).NotEmpty());
-
         Assert.Equal("Name", Assert.Single(validator.Validate(new Person()).Errors).PropertyName);
     }
 
@@ -66,6 +62,7 @@ public sealed class ConstrainedGenericModelTests
     {
         var conversion = Assert.Throws<InvalidOperationException>(() =>
             new Validator<object>(x => x.Property(model => ((Person)model).Name).NotEmpty()));
+
         var typeAs = Assert.Throws<InvalidOperationException>(() =>
             new Validator<object>(x => x.Property(model => (model as Person)!.Name).NotEmpty()));
 

@@ -116,6 +116,16 @@ public sealed class GeneratedAccessorRegistryTests
     }
 
     [Fact]
+    // The generator registers x => x.Name for the model's own Name. A chain through the model's conversion to an
+    // interface it implements explicitly reads the interface's member, which the registration for that path doesn't.
+    public void ChainThroughAConversionOfTheModel_RegisteredForItsPath_ReadsThroughItsOwnAccessor()
+    {
+        AccessorRegistry.RegisterProperty<ExplicitHolder, string?>("Name", holder => holder.Name);
+        var validator = new Validator<ExplicitHolder>(x => x.Property(holder => ((ILabeled)holder).Name).NotEmpty());
+        Assert.False(validator.Validate(new ExplicitHolder()).IsValid);
+    }
+
+    [Fact]
     public void Registry_NullPathOrDelegate_Throws()
     {
         Assert.Throws<ArgumentNullException>(() => AccessorRegistry.RegisterNullSafe<Model, string>(null!, _ => (true, "x")));
@@ -165,6 +175,18 @@ public sealed class GeneratedAccessorRegistryTests
     private sealed class BoxHolder
     {
         public Owner Owner { get; } = new();
+    }
+
+    private interface ILabeled
+    {
+        string? Name { get; }
+    }
+
+    private sealed class ExplicitHolder : ILabeled
+    {
+        public string Name => "own";
+
+        string? ILabeled.Name => null;
     }
 
     private sealed class NumberHolder

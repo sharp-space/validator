@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using AccessorKey = (string Path, System.Linq.Expressions.ExpressionType Body, System.Type? Operand);
+using AccessorKey = (string Path, System.Linq.Expressions.ExpressionType Body, System.Type? Operand, System.Type? Root);
 
 namespace Sharp.Validator;
 
@@ -86,6 +86,11 @@ file static class GeneratedAccessors
     // ARCHITECTURE.md says so too.
     private static bool CanServe(LambdaExpression expression)
     {
+        // The generator registers a chain rooted at the parameter itself. A chain rooted at a conversion of the model
+        // reads the members of the type it converts to, which can be an explicit implementation or a member that one
+        // of the model's own hides, so the registration for its path may read another member.
+        if (expression.GetFaithfulChainRoot() is not ParameterExpression) return false;
+
         if (expression.Body is not UnaryExpression { NodeType: not ExpressionType.ArrayLength } conversion) return true;
 
         // A faithful selector converts a member chain: one that selects its parameter fails at the builder or
@@ -97,21 +102,24 @@ file static class GeneratedAccessors
     }
 }
 
-// The key of a path-faithful selector, the only kind the static caches take: a member chain rooted at the parameter,
-// under at most one Convert, ConvertChecked or ArrayLength, or under the pair of conversions that reads a member whose
-// type isn't nullable as another nullable type. Its dotted path names the members but leaves out a Nullable<T>.Value
-// hop, so the body's node type and the type under its outer unary tell apart what shares a path: (long) x.Big and
-// checked((long) x.Big), x.Age.Value and (int) x.Age, and (object) x.Child.Age, which reads a null age as null, and
-// (object) x.Child.Age.Value, which reads it as no value. Only the last hop can be a left-out .Value, since one in the
-// middle of a chain must be written out, and whether it is shows in that type: S? or S. Under a pair, that type is the
-// one the member converts to before it is wrapped; both conversions check or neither does, and the member is neither
-// nullable nor a .Value, so no single conversion of the same member reaches that type. A body with no unary is the
-// TProperty the cache is for. expression.ToString() keyed them before, and rendered the whole selector for each
-// validator built, which a Scoped validator is in every scope.
+// The key of a path-faithful selector, the only kind the static caches take: a member chain rooted at the parameter or
+// at its conversion to a type it already is, under at most one Convert, ConvertChecked or ArrayLength, or under the
+// pair of conversions that reads a member whose type isn't nullable as another nullable type. Its dotted path names the
+// members but leaves out a Nullable<T>.Value hop, so the body's node type and the type under its outer unary tell apart
+// what shares a path: (long) x.Big and checked((long) x.Big), x.Age.Value and (int) x.Age, and (object) x.Child.Age,
+// which reads a null age as null, and (object) x.Child.Age.Value, which reads it as no value. Only the last hop can be
+// a left-out .Value, since one in the middle of a chain must be written out, and whether it is shows in that type: S?
+// or S. Under a pair, that type is the one the member converts to before it is wrapped; both conversions check or
+// neither does, and the member is neither nullable nor a .Value, so no single conversion of the same member reaches
+// that type. A body with no unary is the TProperty the cache is for. The type a converted root converts to is in the
+// key too: x => x.Name and x => ((Base)x).Name read different members when the model's Name hides the base one, as an
+// interface's member does when the model implements it explicitly. expression.ToString() keyed them before, and
+// rendered the whole selector for each validator built, which a Scoped validator is in every scope.
 file static class FaithfulKey
 {
     internal static AccessorKey Of(string path, LambdaExpression expression) =>
-        (path, expression.Body.NodeType, (expression.Body as UnaryExpression)?.Operand.Type);
+        (path, expression.Body.NodeType, (expression.Body as UnaryExpression)?.Operand.Type,
+            (expression.GetFaithfulChainRoot() as UnaryExpression)?.Type);
 }
 
 /// <summary>
@@ -321,7 +329,7 @@ internal static class ElementsAccessorCache<TModel, TProperty>
         var body = new List<Expression>();
 
         // The root is the parameter or its widening conversion, neither of which can be null where the parameter isn't.
-        var current = node!;
+        var current = node;
         var chain = members.ToArray();
         for (var index = 0; index < chain.Length - 1; index++)
         {
