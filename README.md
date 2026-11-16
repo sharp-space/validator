@@ -939,15 +939,15 @@ already. Set `Global` before the app creates or runs its first validator.
 | `When(...)`, `WhenAsync(...)` | `.Where(...)` on a chain, or `Builder.Where(condition, () => { ... })` for a block | Chained conditions must all hold |
 | `Must`, `MustAsync` | `Must`, `MustAsync` | The predicate receives `null` too, as in FluentValidation |
 | `SetValidator(child)` | `Include(child)` | FluentValidation's own `Include` merges rules of the same type; this `Include` runs a child validator |
-| `SetValidator(this)` | Not supported | See [Recursive models](#recursive-models) |
-| `RuleFor(x => x)` | Not supported | Put the rule on one property and read the model from `context.Model`; see [Check across properties](#check-across-properties) |
-| `RuleForEach(x => x)` | Not supported | Validate a model that holds the collection |
+| `SetValidator(this)` | No direct equivalent | See [Recursive models](#recursive-models) |
+| `RuleFor(x => x)` | No direct equivalent | Put the rule on one property and read the model from `context.Model`; see [Check across properties](#check-across-properties) |
+| `RuleForEach(x => x)` | No direct equivalent | Validate a model that holds the collection |
 | `PrecisionScale(p, s)` | `PrecisionScale(p, s)` | The message reports the value's own digits, where FluentValidation reports them padded to the allowed decimals |
 | `WithMessage(...)`, `WithSeverity(...)`, `WithErrorCode(...)` | A callback on the rule: `.NotEmpty(x => x.ErrorMessage = ...)` | `ErrorSeverity` and `ErrorCode` set the others |
 | `WithName(...)` | `DisplayName` in the options of `Property(selector, options)` | See [Name properties in messages](#name-properties-in-messages) |
 | `OverridePropertyName(...)` | `PropertyName` in the options of `Property(selector, options)` | |
 | `Unless(...)` | `.Where(...)` with the condition negated | |
-| `RuleSet` | Not supported | To validate some properties only, see [Partial validation](#partial-validation) |
+| `RuleSet` | No direct equivalent | To validate some properties only, see [Partial validation](#partial-validation) |
 | `Cascade(CascadeMode.Stop)` | `CascadeMode = ValidationCascadeMode.Stop` | Per validator through `Configure`, per property through `Property(selector, options)`; only `Error` severity stops, because a warning doesn't fail `IsValid` here |
 | `ValidateAndThrow`, `ValidateAndThrowAsync` | `ValidateAndThrow`, `ValidateAndThrowAsync` | |
 
