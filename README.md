@@ -63,9 +63,11 @@ Messenger release independently. The minimum supported runtime remains .NET 10. 
 
 ## Quick start
 
-Define a validator for a model, then validate an instance. The types are in the `Sharp.Validator` namespace.
+Define a validator for a model, then validate an instance.
 
 ```csharp
+using Sharp.Validator;
+
 var validator = new OrderValidator();
 var result = validator.Validate(new Order("A-1001", 0m, "not-an-email"));
 
