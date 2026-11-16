@@ -52,7 +52,8 @@ public sealed class ConstrainedGenericModelTests
     [Fact]
     public void ExplicitConversion_ToATypeTheModelIs_NamesTheSameChain()
     {
-        // ReSharper disable once RedundantCast — the conversion is what the test declares; C# writes it for a generic model.
+        // ReSharper disable once RedundantCast — the conversion is what the test declares; C# writes it for
+        // a generic model.
         var validator = new Validator<Person>(x => x.Property(person => ((INamed)person).Name).NotEmpty());
         Assert.Equal("Name", Assert.Single(validator.Validate(new Person()).Errors).PropertyName);
     }

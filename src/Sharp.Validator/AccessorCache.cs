@@ -87,8 +87,8 @@ file static class GeneratedAccessors
     private static bool CanServe(LambdaExpression expression)
     {
         // The generator registers a chain rooted at the parameter itself. A chain rooted at a conversion of the model
-        // reads the members of the type it converts to, which can be an explicit implementation or a member that one
-        // of the model's own hides, so the registration for its path may read another member.
+        // reads the members of the type it converts to, which can be an explicit implementation or a member that one of
+        // the model's own hides, so the registration for its path may read another member.
         if (expression.GetFaithfulChainRoot() is not ParameterExpression) return false;
 
         if (expression.Body is not UnaryExpression { NodeType: not ExpressionType.ArrayLength } conversion) return true;
