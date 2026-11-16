@@ -76,8 +76,8 @@ public sealed class AccessorKeyTests
     }
 
     [Fact]
-    // The path of x => ((Named)x).Name is the path of x => x.Name, yet the first reads the base member that the
-    // model's own Name hides, so the type the root converts to keeps their accessors apart.
+    // The path of x => ((Named)x).Name is the path of x => x.Name, yet the first reads the base member that the model's
+    // own Name hides, so the type the root converts to keeps their accessors apart.
     public void ChainThroughABaseConversion_AfterTheMemberThatHidesIt_ReadsTheBaseMember()
     {
         var own = new Validator<HidesName>(x => x.Property(model => model.Name).NotEmpty());
