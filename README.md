@@ -4,7 +4,7 @@ A validator for .NET built for speed and Native AOT, with first-class fluent rul
 integration.
 
 ```csharp
-public sealed class UserValidator : Validator<User>
+public class UserValidator : Validator<User>
 {
     public UserValidator()
     {
@@ -37,6 +37,8 @@ public sealed class UserValidator : Validator<User>
   precompiles property accessors at build time, and analyzers flag code that Native AOT would run interpreted.
 - **Allocation-aware.** A valid model allocates no error list and nothing per rule or per element, and a literal regex
   pattern scales across cores.
+- **Works with [Sharp.Mediator](https://github.com/sharp-space/mediator).** `Sharp.Mediator.Validation` runs a message's
+  validators before its handler, and can return the failures as a response instead of throwing.
 
 ## Packages
 
@@ -54,18 +56,17 @@ Reference `Sharp.Validator.Result` alone from layers that only consume results.
 dotnet add package Sharp.Validator
 ```
 
-Requires .NET 10 or later.
-Package versions follow Semantic Versioning independently of .NET releases, starting at 1.0.0. Patch releases fix
-bugs; minor releases add backward-compatible features; major releases introduce breaking changes or raise minimum
-SDK, compiler, or runtime requirements. All packages in this repository share a version; Validator, Mediator, and
-Messenger release independently. The minimum supported runtime remains .NET 10. Changes are listed in the
+Requires .NET 10 or later. Versions follow Semantic Versioning, and raising the minimum SDK, compiler, or runtime is a
+major release. All packages in this repository share a version. Changes are listed in the
 [release notes](https://github.com/sharp-space/validator/releases).
 
 ## Quick start
 
-Define a validator for a model, then validate an instance. The types are in the `Sharp.Validator` namespace.
+Define a validator for a model, then validate an instance.
 
 ```csharp
+using Sharp.Validator;
+
 var validator = new OrderValidator();
 var result = validator.Validate(new Order("A-1001", 0m, "not-an-email"));
 
@@ -73,9 +74,9 @@ if (!result.IsValid)
     foreach (var error in result.Errors)
         Console.WriteLine($"{error.PropertyName}: {error.Message}");
 
-public sealed record Order(string Id, decimal Amount, string Email);
+public record Order(string Id, decimal Amount, string Email);
 
-public sealed class OrderValidator : Validator<Order>
+public class OrderValidator : Validator<Order>
 {
     public OrderValidator()
     {
@@ -95,6 +96,10 @@ Email: 'Email' is not a valid email address.
 
 A validator keeps no per-call state, so create it once and share it, across threads too. [Results](#results)
 describes what `Validate` returns, and [Dependency injection](#dependency-injection) how to register validators.
+
+Validators, rules, and options are in the `Sharp.Validator` namespace. The result types, `ValidationResult`,
+`ValidationError`, `ValidationErrorSeverity`, and `ValidationException`, are in `Sharp.Validator.Result`, and rule
+classes such as `EqualValidator<TModel, TProperty>` in `Sharp.Validator.Validators`.
 
 ## Inline validators
 
@@ -127,7 +132,8 @@ as it should. The string rules apply to both.
 The declared type is what the compiler checks, not what the value holds at run time. A non-nullable `string` that is
 `null` anyway, such as one a deserializer left unset, reaches `Must` as `null`, so `name.Length` throws
 `NullReferenceException`; the built-in rules handle the `null` as usual. Where that can happen, put `NotNull()` first
-and set the chain's `CascadeMode` to `Stop`, so the predicate doesn't run on it.
+and set the chain's `CascadeMode` to `Stop`, so the predicate doesn't run on it (see
+[Set defaults for one property's rules](#set-defaults-for-one-propertys-rules)).
 
 > **Note:** `Equal` and `NotEqual` follow equality instead. `null` equals `null`, so `Equal` passes and `NotEqual`
 > fails, and `null` against a value fails `Equal`, so a confirmation field left empty can't pass. A comparer you pass
@@ -142,8 +148,9 @@ and set the chain's `CascadeMode` to `Stop`, so the predicate doesn't run on it.
   `IEqualityComparer<TProperty>`: `Equal(value, comparer)`
 - `InEnum()` for an enum or nullable enum property, where any other property type doesn't compile, and
   `InEnum(typeof(TEnum))` or `InEnum(typeof(TEnum), StringComparison)` for a `string` property
-- `Must(value => ...)` and `Must((value, context) => ...)`, `MustAsync((value, cancellationToken) => ...)` and
-  `MustAsync((value, context, cancellationToken) => ...)`, described in [Custom rules](#custom-rules)
+- `Must(value => ...)` and `Must((value, context) => ...)`, `MustAsync(value => ...)`,
+  `MustAsync((value, cancellationToken) => ...)`, and `MustAsync((value, context, cancellationToken) => ...)`, described
+  in [Custom rules](#custom-rules)
 
 ### Comparisons and ranges
 
@@ -181,9 +188,9 @@ the nullable one instead.
 
 A target that is a member chain of the model is named in messages as `{TargetPropertyName}` and is precompiled for
 Native AOT, including one that C# reads through a widening into a nullable type, such as an `int` member compared with
-a `long?` or `decimal?` property. A target that starts at a captured or static value is read the same way, but it isn't
-another property, so messages print its value. A computed target has no name and is compiled for each validator
-instance.
+a `long?` or `decimal?` property. A target that starts at a captured or static value, such as `x => settings.Max`, is
+read null-safely too, but it isn't precompiled: like a computed target, it is compiled for each validator instance. It
+isn't another property, so messages print its value, and a computed target has no name either.
 
 > **Note:** Under Native AOT a computed target runs in the expression interpreter, measured at about four times the
 > time and some 200 more bytes per validation, and one that applies an operator the runtime looks up by reflection,
@@ -195,7 +202,8 @@ instance.
 
 ### Strings
 
-- `Length(min, max)`, `Length(exact)`, `MinimumLength(min)`, `MaximumLength(max)`
+- `Length(min, max)`, `Length(exact)`, `MinimumLength(min)`, `MaximumLength(max)`, each also with a
+  `Func<TModel, int>` read from the model at validation time, as in `MaximumLength(x => x.MaxNameLength)`
 - `Regex(pattern)`, `Regex(pattern, options)`, `Regex(regex)`, and `Regex(x => pattern)` for a pattern the model
   supplies. A pattern given as a string gets a 2-second match timeout unless you pass another, and a timeout counts as
   a validation failure, not an exception, so hostile input that would backtrack forever is reported as invalid. Such a
@@ -237,7 +245,7 @@ They read "now" from `ValidatorBuilderOptions.TimeProvider`, `TimeProvider.Syste
 validator:
 
 ```csharp
-public sealed class BookingValidator : Validator<Booking>
+public class BookingValidator : Validator<Booking>
 {
     public BookingValidator(TimeProvider clock)
     {
@@ -247,8 +255,8 @@ public sealed class BookingValidator : Validator<Booking>
 }
 ```
 
-A validator reads its clock when it freezes, and an included validator reads its own, not the parent's, so set the
-clock on the child too, or on `Global`.
+A validator reads its clock when it [freezes](#when-a-validator-freezes), and an included validator reads its own, not
+the parent's, so set the clock on the child too, or on `Global`.
 
 - A `DateTime` compares with now in its own kind: a UTC value with UTC now, a Local or Unspecified one with local time.
 - A `DateTimeOffset` compares as an instant, and `IsToday` reads its date in the value's own offset.
@@ -275,12 +283,13 @@ members.Property(x => x.Home.City).NotEmpty();   // Members[i].Home.City
 ```
 
 `Elements(selector)` applies its rules to each item and reports `Items[i]`. `Property(...)` on an `Elements` chain
-selects from the item. A chain doesn't start a chain for another property of the model, so each one starts from
-`Builder`. A `Where` on the `Elements` chain gates its `Property` chains too. Severity, code, and cascade defaults set
-on the collection apply only to the rules on the items themselves, and options passed to an item's `Property` apply
-only to that chain. The collection is read once per validation for the chain and its `Property` chains, so a lazy
-sequence is enumerated once. When more than one chain walks a collection that isn't a list, that read copies it into an
-array, which each validation allocates.
+selects from the item, not the model; start a chain for another property of the model from `Builder`. A `Where` on the
+`Elements` chain gates its `Property` chains too. Severity, code, and cascade defaults set on the collection apply only
+to the rules on the items themselves, and options passed to an item's `Property` apply only to that chain.
+
+The collection is read once per validation for the chain and its `Property` chains, so a lazy sequence is enumerated
+once. When more than one chain walks a collection that isn't a list, that read copies it into an array, which each
+validation allocates.
 
 > **Note:** A rule must not add or remove items of the collection it validates. A `List<T>` that changes size while
 > its items are validated throws `InvalidOperationException`, as the list's own enumerator does. Unlike the
@@ -315,7 +324,7 @@ once, at the root of the validation, while wrappers set through a validator's ow
 overflow, which .NET can't catch. To validate a tree, compose a new validator per level down to a fixed depth:
 
 ```csharp
-public sealed class NodeValidator : Validator<Node>
+public class NodeValidator : Validator<Node>
 {
     public NodeValidator(int depth = 8)
     {
@@ -332,7 +341,7 @@ A validator with an async rule, an async `Where` condition, or an async child va
 ### Check a value against a service
 
 ```csharp
-public sealed class UserValidator : Validator<User>
+public class UserValidator : Validator<User>
 {
     public UserValidator(IUserRepository users)
     {
@@ -382,7 +391,7 @@ Builder.Property(x => x.DiscountCode).Must((code, context) =>
 
 The overload with a `ValidationContext` gives the predicate the whole model and a message for this failure only.
 `MustAsync((value, context, cancellationToken) => ...)` has the same form. Inside the predicate,
-`context.MessageParameters.Add("X", value)` feeds a `{X}` placeholder, and `context.Parameters`, an
+`context.MessageParameters.Add("Limit", "10")` feeds a `{Limit}` placeholder with a string, and `context.Parameters`, an
 `IDictionary<string, object?>`, is free-form state for the call. Included child validators see the same `Parameters`
 dictionary and may add values for later parent rules; all other context state stays apart.
 
@@ -395,7 +404,7 @@ rule set, create it yourself and pass it to `Validate(context)`.
 ### Write a reusable rule
 
 ```csharp
-public sealed class SlugValidator<TModel> : PropertyValidator<TModel, string?>
+public class SlugValidator<TModel> : PropertyValidator<TModel, string?>
 {
     public SlugValidator() => Configure(options =>
     {
@@ -414,7 +423,9 @@ Derive from `PropertyValidator<TModel, TProperty>`, or `AsyncPropertyValidator<T
 and add it with `Add`. Set its default code and message with `Configure` in the constructor, as the built-in rules do,
 so an `ErrorMessages` entry for that code replaces the message. A rule that sets no code reports the name its type is
 declared with, such as `SlugValidator` for `SlugValidator<TModel>`, and one that sets no message reports
-`'{PropertyName}' is not valid.`. The built-in rules are sealed; to build on one, call it from your rule.
+`'{PropertyName}' is not valid.`. The public rule classes in `Sharp.Validator.Validators` are sealed; to build on one,
+call its `Validate` from your rule. The date, password, and string `InEnum` rules are internal and are reached only
+through their extension methods.
 
 > **Note:** A rule instance carries its own options, so give each chain its own instance. Adding one instance to a
 > second chain throws `InvalidOperationException`.
@@ -485,7 +496,7 @@ A comparison target is read, not reported under, so it may start at a captured o
 ### Run rules only when a condition holds
 
 ```csharp
-public sealed class OrderValidator : Validator<Order>
+public class OrderValidator : Validator<Order>
 {
     public OrderValidator()
     {
@@ -512,7 +523,7 @@ Builder.Property(x => x.Coupon)
 ### Apply one condition to several chains
 
 ```csharp
-public sealed class UserValidator : Validator<User>
+public class UserValidator : Validator<User>
 {
     public UserValidator()
     {
@@ -569,7 +580,7 @@ failure.
 ### Stop at the first failure
 
 ```csharp
-public sealed class UserValidator : Validator<User>
+public class UserValidator : Validator<User>
 {
     public UserValidator()
     {
@@ -581,6 +592,11 @@ public sealed class UserValidator : Validator<User>
 
 `Stop` reacts to the first `Error`-severity entry. `Warning` and `Information` entries don't block: they are recorded
 and validation continues, so they can't hide a later error and report an invalid model as valid.
+
+## Property options
+
+Options passed to `Property` set defaults for every rule on that chain: the reported name, the name in messages,
+severity, code, message, and cascade mode.
 
 ### Set defaults for one property's rules
 
@@ -838,7 +854,7 @@ was resolved through, so a validator that implements `IDisposable` or `IAsyncDis
 services it receives. A validator can take another by its type, which `Include` needs:
 
 ```csharp
-public sealed class OrderValidator : Validator<Order>
+public class OrderValidator : Validator<Order>
 {
     public OrderValidator(AddressValidator address) => Builder.Property(x => x.ShippingAddress).Include(address);
 }
@@ -855,7 +871,7 @@ A type that isn't a `Validator<T>`, such as a decorator or a test double, implem
 members that take a `ValidationContext<T>`:
 
 ```csharp
-public sealed class LoggingValidator<T>(IValidator<T> inner, ILogger logger) : IValidator<T>
+public class LoggingValidator<T>(IValidator<T> inner, ILogger logger) : IValidator<T>
 {
     public ValidationResult Validate(ValidationContext<T> context) => Log(inner.Validate(context));
 
@@ -875,6 +891,23 @@ and call these two. Default implementations belong to the interface, so call the
 of the class's own type, `Validate(model)` doesn't compile unless the class declares it. A class that implements
 `IValidator<T>` for two model types gets two default implementations of `IValidator.Validate(object)`, which C# rejects
 as CS8705, so such a class implements the two `IValidator` members itself.
+
+### Validate messages with Sharp.Mediator
+
+The `Sharp.Mediator.Validation` package of [Sharp.Mediator](https://github.com/sharp-space/mediator) runs every
+validator registered for a request before its handler:
+
+```csharp
+services.AddMediator(x => x
+    .AddValidationMiddleware()
+    .AddHandlers(typeof(Program).Assembly));
+
+services.AddValidators(typeof(Program).Assembly);
+```
+
+An invalid request throws `ValidationException` and never reaches its handler. A handler that returns a `Response`
+envelope can get the failures back as an `Invalid` response instead, which `Sharp.Mediator.HttpResults` turns into a
+422; the [Sharp.Mediator README](https://github.com/sharp-space/mediator#sharpmediatorvalidation) lists the options.
 
 ### When a validator freezes
 
@@ -903,11 +936,15 @@ already. Set `Global` before the app creates or runs its first validator.
 | `When(...)`, `WhenAsync(...)` | `.Where(...)` on a chain, or `Builder.Where(condition, () => { ... })` for a block | Chained conditions must all hold |
 | `Must`, `MustAsync` | `Must`, `MustAsync` | The predicate receives `null` too, as in FluentValidation |
 | `SetValidator(child)` | `Include(child)` | FluentValidation's own `Include` merges rules of the same type; this `Include` runs a child validator |
-| `SetValidator(this)` | Not supported | See [Recursive models](#recursive-models) |
-| `RuleFor(x => x)` | Not supported | Put the rule on one property and read the model from `context.Model`; see [Check across properties](#check-across-properties) |
-| `RuleForEach(x => x)` | Not supported | Validate a model that holds the collection |
+| `SetValidator(this)` | No direct equivalent | See [Recursive models](#recursive-models) |
+| `RuleFor(x => x)` | No direct equivalent | Put the rule on one property and read the model from `context.Model`; see [Check across properties](#check-across-properties) |
+| `RuleForEach(x => x)` | No direct equivalent | Validate a model that holds the collection |
 | `PrecisionScale(p, s)` | `PrecisionScale(p, s)` | The message reports the value's own digits, where FluentValidation reports them padded to the allowed decimals |
-| `WithMessage(...)`, `WithSeverity(...)` | A callback on the rule: `.NotEmpty(x => x.ErrorMessage = ...)` | |
+| `WithMessage(...)`, `WithSeverity(...)`, `WithErrorCode(...)` | A callback on the rule: `.NotEmpty(x => x.ErrorMessage = ...)` | `ErrorSeverity` and `ErrorCode` set the others |
+| `WithName(...)` | `DisplayName` in the options of `Property(selector, options)` | See [Name properties in messages](#name-properties-in-messages) |
+| `OverridePropertyName(...)` | `PropertyName` in the options of `Property(selector, options)` | |
+| `Unless(...)` | `.Where(...)` with the condition negated | |
+| `RuleSet` | No direct equivalent | To validate some properties only, see [Partial validation](#partial-validation) |
 | `Cascade(CascadeMode.Stop)` | `CascadeMode = ValidationCascadeMode.Stop` | Per validator through `Configure`, per property through `Property(selector, options)`; only `Error` severity stops, because a warning doesn't fail `IsValid` here |
 | `ValidateAndThrow`, `ValidateAndThrowAsync` | `ValidateAndThrow`, `ValidateAndThrowAsync` | |
 
@@ -924,6 +961,9 @@ Native AOT without configuration:
 services.AddValidators(typeof(Program).Assembly);
 ```
 
+Under Native AOT, `AddValidators` throws `InvalidOperationException` for an assembly built without the generator instead
+of scanning it.
+
 - `AddValidator<T>()` is trim-annotated and safe under Native AOT.
 - A validator that generated code can't name, such as a `private` nested or `file`-local type, is left out by
   `AddValidators`, through the generated registrations and the reflection fallback alike, and reported as
@@ -937,7 +977,8 @@ services.AddValidators(typeof(Program).Assembly);
   under Native AOT. Its code fix converts the pattern to a `[GeneratedRegex]` method and keeps the 2-second match
   timeout; both ignore case in the invariant culture, so the conversion keeps the rule's verdicts. Under the JIT the
   literal pattern scales better under parallel load (see [Performance](#performance)), so SVL010 stays silent there.
-- In a trimmed or AOT project, a cross-property target that isn't a member chain, such as `x => x.Minimum * 2`, is
+- In a trimmed or AOT project, a cross-property target that isn't a member chain of the model, such as
+  `x => x.Minimum * 2` or `x => settings.Max`, is
   reported as [SVL011](https://github.com/sharp-space/validator/blob/main/doc/diagnostics/SVL011.md): it is compiled
   when the validator is built, so it runs interpreted under Native AOT, and trimming can remove an operator it needs.
 - The libraries build with `<IsAotCompatible>true</IsAotCompatible>`, and CI publishes and runs a Native AOT test app.
@@ -972,9 +1013,11 @@ the flat model only. Sharp.Validator reads properties here through compiled expr
 without the source generator, so the table leaves out what the generated accessors save.
 
 Sharp.Validator is allocation-aware by design. The all-valid path has constant-size result overhead and allocates no
-error list and nothing per rule or per element, except in two rules: `Url()` and `Uri()` parse each value into a
-`System.Uri`, and `NotEmpty()` and `Empty()` can allocate the enumerator they read a collection through when it
-doesn't implement the non-generic `ICollection`, as a `HashSet<T>` doesn't. The source generator precompiles property
+error list and nothing per rule or per element, except in two rules and one walk: `Url()` and `Uri()` parse each
+value into a `System.Uri`, `NotEmpty()` and `Empty()` can allocate the enumerator they read a collection through when
+it doesn't implement the non-generic `ICollection`, as a `HashSet<T>` doesn't, and a collection that isn't a list,
+walked by more than one chain, is copied into an array (see
+[Validate every item of a collection](#validate-every-item-of-a-collection)). The source generator precompiles property
 accessors, which are otherwise expression-compiled once and cached, and the hot paths avoid LINQ, boxing, and
 closures. `Include` keeps these properties: an included child creates no result object, and a collection chain reuses
 one child context across its elements, so a context belongs to the rule call that received it. A rule with a fixed
