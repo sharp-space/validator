@@ -47,7 +47,7 @@ internal static partial class InternalExtensions
             // message below names.
             if (!(arrayLength && node is UnaryExpression)) lambdaExpression.GetSelectedMember();
             while (node is MemberExpression member) node = member.Expression;
-            if (node == lambdaExpression.Parameters[0]) return;
+            if (node == lambdaExpression.Parameters[0] || lambdaExpression.IsWideningOfParameter(node)) return;
 
             const string indexer = "reads through an indexer; validate each element with Elements(...), and a member of each " +
                 "with Elements(...).Property(...)";
@@ -71,6 +71,15 @@ internal static partial class InternalExtensions
                 $"Validator's property expression('{lambdaExpression}') {reason}. It has no path of its own to report errors " +
                 "under or to select by, so select a member chain of the model, such as 'x => x.Address.City'.");
         }
+
+        /// <summary>
+        /// Whether <paramref name="node" /> converts the lambda's parameter to a type the parameter's own type already is, such as an interface it implements.
+        /// C# writes that conversion when a generic model reads a member of its constraint (<c>x => x.Id</c> where <c>TModel : IIdentifier</c> becomes
+        /// <c>x => ((IIdentifier)x).Id</c>), and it names the same value, so the chain still starts at the model.
+        /// </summary>
+        internal bool IsWideningOfParameter(Expression? node) =>
+            node is UnaryExpression { NodeType: ExpressionType.Convert, Operand: var operand } conversion &&
+            operand == lambdaExpression.Parameters[0] && conversion.Type.IsAssignableFrom(operand.Type);
 
         /// <summary>
         /// Root-first dotted path of the member-access chain, e.g. <c>x => x.Policy.Max</c> → <c>"Policy.Max"</c>. <c>Nullable&lt;T&gt;.Value</c> hops are
@@ -159,26 +168,33 @@ internal static partial class InternalExtensions
         }
 
         /// <summary>
-        /// True, when the selector is a pure member-access chain rooted at the parameter (no cast, index, or call in the middle), so its dotted path is a
-        /// faithful, collision-free cache key. A cast such as <c>((I)x.Item).Id</c> is not faithful — it truncates to the same path as a sibling <c>x.Id</c>
-        /// rule. Neither is a computing unary such as <c>!x.Active</c>: its path names the operand, not the value. Of stacked conversions, only the pair that
-        /// reads a member as another nullable type is: its value follows from the member, the type and the checking, which the static caches' key holds. Any
-        /// other stack can pass through a type in between that the key doesn't show.
+        /// True, when the selector is a pure member-access chain rooted at the parameter, or at its conversion to a type it already is (no cast, index, or call
+        /// in the middle), so its dotted path is a faithful, collision-free cache key. A cast such as <c>((I)x.Item).Id</c> is not faithful — it truncates to
+        /// the same path as a sibling <c>x.Id</c> rule. Neither is a computing unary such as <c>!x.Active</c>: its path names the operand, not the value. Of
+        /// stacked conversions, only the pair that reads a member as another nullable type is: its value follows from the member, the type and the checking,
+        /// which the static caches' key holds. Any other stack can pass through a type in between that the key doesn't show.
         /// </summary>
-        internal bool IsPathFaithfulMemberChain()
+        internal bool IsPathFaithfulMemberChain() =>
+            lambdaExpression.GetFaithfulChainRoot() is { } root && (root is ParameterExpression || lambdaExpression.IsWideningOfParameter(root));
+
+        /// <summary>
+        /// The node the member chain under the selector's top conversion, array <c>Length</c> or nullable pair starts at, as
+        /// <see cref="IsPathFaithfulMemberChain" /> reads it; <c>null</c> when the top is another unary or the chain starts at a static member.
+        /// </summary>
+        internal Expression? GetFaithfulChainRoot()
         {
             var node = lambdaExpression.Body;
             if (node is UnaryExpression unary)
             {
                 if (unary.NodeType is not (ExpressionType.Convert or ExpressionType.ConvertChecked or ExpressionType.ArrayLength))
-                    return false;
+                    return null;
 
                 node = unary.IsConversionIntoNullable(out var read) ? read : unary.Operand;
             }
 
-            while (node is MemberExpression member) node = member.Expression!;
+            while (node is MemberExpression member) node = member.Expression;
 
-            return node is ParameterExpression;
+            return node;
         }
     }
 

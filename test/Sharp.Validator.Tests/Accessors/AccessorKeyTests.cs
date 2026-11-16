@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+
 namespace Sharp.Validator.Tests.Accessors;
 
 // The static accessor caches keyed a path-faithful selector by expression.ToString(), which rendered the whole selector
@@ -47,6 +49,66 @@ public sealed class AccessorKeyTests
 
         Assert.True(unwrapping.Validate(new UnwrapsFirst()).IsValid);
         Assert.False(boxing.Validate(new UnwrapsFirst()).IsValid);
+    }
+
+    [Fact]
+    // A generic model reads a member of its constraint through a conversion, x => ((INamed)x).Name. The chain is
+    // path-faithful, so each validator built over it, a Scoped one in every scope, takes the accessor the first one
+    // compiled rather than compiling its own.
+    public void ChainThroughTheConstraint_TakesTheFirstCompiledAccessor()
+    {
+        Assert.Same(Read<SharesAccessors>(), Read<SharesAccessors>());
+        Assert.Same(ReadNested<SharesAccessors>(), ReadNested<SharesAccessors>());
+
+        return;
+
+        static Func<TModel, string?> Read<TModel>() where TModel : INamed
+        {
+            Expression<Func<TModel, string?>> selector = x => x.Name;
+            return PropertyAccessorCache<TModel, string?>.GetOrAdd(selector.GetPropertyPath(), selector.IsPathFaithfulMemberChain(), selector);
+        }
+
+        static Func<TModel, (bool HasValue, string? Value)> ReadNested<TModel>() where TModel : INamed
+        {
+            Expression<Func<TModel, string?>> selector = x => x.Owner!.Name;
+            return NullSafeAccessorCache<TModel, string?>.GetOrAdd(selector.GetPropertyPath(), selector.IsPathFaithfulMemberChain(), selector);
+        }
+    }
+
+    [Fact]
+    // The path of x => ((Named)x).Name is the path of x => x.Name, yet the first reads the base member that the
+    // model's own Name hides, so the type the root converts to keeps their accessors apart.
+    public void ChainThroughABaseConversion_AfterTheMemberThatHidesIt_ReadsTheBaseMember()
+    {
+        var own = new Validator<HidesName>(x => x.Property(model => model.Name).NotEmpty());
+        var inherited = new Validator<HidesName>(x => x.Property(model => ((Named)model).Name).NotEmpty());
+        var model = new HidesName("inherited", "");
+        Assert.False(own.Validate(model).IsValid);
+        Assert.True(inherited.Validate(model).IsValid);
+    }
+
+    private interface INamed
+    {
+        string? Name { get; }
+
+        Named? Owner { get; }
+    }
+
+    private sealed class SharesAccessors : INamed
+    {
+        public string? Name { get; init; }
+
+        public Named? Owner { get; init; }
+    }
+
+    private class Named(string? name)
+    {
+        public string? Name { get; } = name;
+    }
+
+    private sealed class HidesName(string? inherited, string? name) : Named(inherited)
+    {
+        public new string? Name { get; } = name;
     }
 
     private sealed class WrapsFirst

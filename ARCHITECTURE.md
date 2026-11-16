@@ -173,22 +173,28 @@ interpreted, and more slowly, under Native AOT. A missing accessor therefore cos
   null otherwise. The generator doesn't register one, and the runtime doesn't look one up. The generator registers a
   target only as C# converts it implicitly and skips one with a cast, and the runtime relies on that: it reads a target
   written as two conversions into a nullable type from the registration for its path, so a generator that registered a
-  cast target as its bare member would hand a narrowing cast an accessor that doesn't narrow.
-- A chain's selector, and one passed to `IncludeProperty`, is a member chain rooted at the lambda parameter: properties
-  or fields, `Nullable<T>.Value` hops included, under any number of conversions and at most one other unary.
+  cast target as its bare member would hand a narrowing cast an accessor that doesn't narrow. A chain rooted at a
+  conversion of the model, such as a generic model's `x => ((INamed)x).Name`, has no generated accessor either: the
+  generator registers chains rooted at the parameter itself, and the conversion's type can declare a member of the same
+  name that the model's own hides or implements explicitly.
+- A chain's selector, and one passed to `IncludeProperty`, is a member chain rooted at the lambda parameter, or at its
+  conversion to a type it already is, which C# writes when a generic model reads a member of its constraint:
+  properties or fields, `Nullable<T>.Value` hops included, under any number of conversions and at most one other unary.
   `EnsureChainSelector` rejects anything else where it is declared, so a chain's path names the value it reads, and no
   two chains share a path because one was cut short at an indexer, a call, or a cast. A cross-property target is only
   read, so it may also start at a captured or static value or compute one; a target that is a member chain in the same
   sense gets a name and a null-safe accessor.
-- The static accessor caches hold only path-faithful selectors: a member chain rooted at the lambda parameter, with no
-  captured value, under at most one top-level conversion or array `Length`, or under the two conversions C# writes to
-  read a member whose type isn't nullable as another nullable type, such as an `int` member read as `long?`, both
-  checked or both not. A selector's key is its dotted path with the body's node type and the type under its outer unary,
-  since the path leaves out a `Nullable<T>.Value` hop: `(object) x.Age` and `(object) x.Age.Value` read a null age
-  differently. A nullable member or its `Value` read through two conversions isn't faithful for that reason:
-  `(long) x.Other` throws on a null `Other` where `x.Other.Value` skips, and both would key on `long`. Any other
-  selector is compiled for its own rule and never enters a static cache, so two validators with different captured
-  values never share a delegate.
+- The static accessor caches hold only path-faithful selectors: a member chain rooted at the lambda parameter or at its
+  conversion to a type it already is, with no captured value, under at most one top-level conversion or array
+  `Length`, or under the two conversions C# writes to read a member whose type isn't nullable as another nullable type,
+  such as an `int` member read as `long?`, both checked or both not. A selector's key is its dotted path with the
+  body's node type and the type under its outer unary, since the path leaves out a `Nullable<T>.Value` hop:
+  `(object) x.Age` and `(object) x.Age.Value` read a null age differently. A nullable member or its `Value` read through
+  two conversions isn't faithful for that reason: `(long) x.Other` throws on a null `Other` where `x.Other.Value` skips,
+  and both would key on `long`. The key also holds the type a converted root converts the model to, which the path
+  leaves out as well: `x => ((Base)x).Name` reads another member than `x => x.Name` when the model's `Name` hides the
+  base one. Any other selector is compiled for its own rule and never enters a static cache, so two validators with
+  different captured values never share a delegate.
 - A generated accessor and a compiled one treat a member on the way to the value as absent only when it is a null
   reference or an empty `Nullable<T>`. Neither calls the `==` the member's type declares.
 - The generated registrar and the reflection scan register the same validators: classes only, never structs, and
