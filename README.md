@@ -4,7 +4,7 @@ A validator for .NET built for speed and Native AOT, with first-class fluent rul
 integration.
 
 ```csharp
-public sealed class UserValidator : Validator<User>
+public class UserValidator : Validator<User>
 {
     public UserValidator()
     {
@@ -73,9 +73,9 @@ if (!result.IsValid)
     foreach (var error in result.Errors)
         Console.WriteLine($"{error.PropertyName}: {error.Message}");
 
-public sealed record Order(string Id, decimal Amount, string Email);
+public record Order(string Id, decimal Amount, string Email);
 
-public sealed class OrderValidator : Validator<Order>
+public class OrderValidator : Validator<Order>
 {
     public OrderValidator()
     {
@@ -237,7 +237,7 @@ They read "now" from `ValidatorBuilderOptions.TimeProvider`, `TimeProvider.Syste
 validator:
 
 ```csharp
-public sealed class BookingValidator : Validator<Booking>
+public class BookingValidator : Validator<Booking>
 {
     public BookingValidator(TimeProvider clock)
     {
@@ -315,7 +315,7 @@ once, at the root of the validation, while wrappers set through a validator's ow
 overflow, which .NET can't catch. To validate a tree, compose a new validator per level down to a fixed depth:
 
 ```csharp
-public sealed class NodeValidator : Validator<Node>
+public class NodeValidator : Validator<Node>
 {
     public NodeValidator(int depth = 8)
     {
@@ -332,7 +332,7 @@ A validator with an async rule, an async `Where` condition, or an async child va
 ### Check a value against a service
 
 ```csharp
-public sealed class UserValidator : Validator<User>
+public class UserValidator : Validator<User>
 {
     public UserValidator(IUserRepository users)
     {
@@ -395,7 +395,7 @@ rule set, create it yourself and pass it to `Validate(context)`.
 ### Write a reusable rule
 
 ```csharp
-public sealed class SlugValidator<TModel> : PropertyValidator<TModel, string?>
+public class SlugValidator<TModel> : PropertyValidator<TModel, string?>
 {
     public SlugValidator() => Configure(options =>
     {
@@ -485,7 +485,7 @@ A comparison target is read, not reported under, so it may start at a captured o
 ### Run rules only when a condition holds
 
 ```csharp
-public sealed class OrderValidator : Validator<Order>
+public class OrderValidator : Validator<Order>
 {
     public OrderValidator()
     {
@@ -512,7 +512,7 @@ Builder.Property(x => x.Coupon)
 ### Apply one condition to several chains
 
 ```csharp
-public sealed class UserValidator : Validator<User>
+public class UserValidator : Validator<User>
 {
     public UserValidator()
     {
@@ -569,7 +569,7 @@ failure.
 ### Stop at the first failure
 
 ```csharp
-public sealed class UserValidator : Validator<User>
+public class UserValidator : Validator<User>
 {
     public UserValidator()
     {
@@ -838,7 +838,7 @@ was resolved through, so a validator that implements `IDisposable` or `IAsyncDis
 services it receives. A validator can take another by its type, which `Include` needs:
 
 ```csharp
-public sealed class OrderValidator : Validator<Order>
+public class OrderValidator : Validator<Order>
 {
     public OrderValidator(AddressValidator address) => Builder.Property(x => x.ShippingAddress).Include(address);
 }
@@ -855,7 +855,7 @@ A type that isn't a `Validator<T>`, such as a decorator or a test double, implem
 members that take a `ValidationContext<T>`:
 
 ```csharp
-public sealed class LoggingValidator<T>(IValidator<T> inner, ILogger logger) : IValidator<T>
+public class LoggingValidator<T>(IValidator<T> inner, ILogger logger) : IValidator<T>
 {
     public ValidationResult Validate(ValidationContext<T> context) => Log(inner.Validate(context));
 
