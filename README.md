@@ -56,11 +56,8 @@ Reference `Sharp.Validator.Result` alone from layers that only consume results.
 dotnet add package Sharp.Validator
 ```
 
-Requires .NET 10 or later.
-Package versions follow Semantic Versioning independently of .NET releases, starting at 1.0.0. Patch releases fix
-bugs; minor releases add backward-compatible features; major releases introduce breaking changes or raise minimum
-SDK, compiler, or runtime requirements. All packages in this repository share a version; Validator, Mediator, and
-Messenger release independently. The minimum supported runtime remains .NET 10. Changes are listed in the
+Requires .NET 10 or later. Versions follow Semantic Versioning, and raising the minimum SDK, compiler, or runtime is a
+major release. All packages in this repository share a version. Changes are listed in the
 [release notes](https://github.com/sharp-space/validator/releases).
 
 ## Quick start
