@@ -6,6 +6,7 @@
         <Copyright>© 2026 Sharp</Copyright>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageIcon>icon.png</PackageIcon>
         <RepositoryUrl>https://github.com/sharp-space/validator</RepositoryUrl>
         <PackageProjectUrl>https://github.com/sharp-space/validator</PackageProjectUrl>
         <RepositoryType>git</RepositoryType>
@@ -29,5 +30,6 @@
 
     <ItemGroup Condition="Exists('$(MSBuildThisFileDirectory)README.md')">
         <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" Visible="false" />
+        <None Include="$(MSBuildThisFileDirectory)icon.png" Pack="true" PackagePath="\" Visible="false" />
     </ItemGroup>
 </Project>
