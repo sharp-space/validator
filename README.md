@@ -470,6 +470,10 @@ stop at its last member and report its errors under another property's name:
 | `x => ((Child) x.Item).Name` | `Property(x => x.Item).Include(new ChildValidator())`, which runs only for a `Child` |
 | `x => other.Name`, `x => Settings.Name` | A `Must` on the property the value belongs with |
 
+A conversion of the model to a type it already is names the model too. A validator over a generic model, such as
+`Validator<TModel> where TModel : INamed`, can declare `x => x.Name`, which C# writes as `x => ((INamed)x).Name`, and
+reports it as `Name`. A conversion to a type the model isn't, such as a derived type, still throws.
+
 A comparison target is read, not reported under, so it may start at a captured or static value or compute one.
 
 ## Conditional validation

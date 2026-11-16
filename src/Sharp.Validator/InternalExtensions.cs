@@ -47,7 +47,7 @@ internal static partial class InternalExtensions
             // message below names.
             if (!(arrayLength && node is UnaryExpression)) lambdaExpression.GetSelectedMember();
             while (node is MemberExpression member) node = member.Expression;
-            if (node == lambdaExpression.Parameters[0]) return;
+            if (node == lambdaExpression.Parameters[0] || lambdaExpression.IsWideningOfParameter(node)) return;
 
             const string indexer = "reads through an indexer; validate each element with Elements(...), and a member of each " +
                 "with Elements(...).Property(...)";
@@ -71,6 +71,15 @@ internal static partial class InternalExtensions
                 $"Validator's property expression('{lambdaExpression}') {reason}. It has no path of its own to report errors " +
                 "under or to select by, so select a member chain of the model, such as 'x => x.Address.City'.");
         }
+
+        /// <summary>
+        /// Whether <paramref name="node" /> converts the lambda's parameter to a type the parameter's own type already is, such as an interface it implements.
+        /// C# writes that conversion when a generic model reads a member of its constraint (<c>x => x.Id</c> where <c>TModel : IIdentifier</c> becomes
+        /// <c>x => ((IIdentifier)x).Id</c>), and it names the same value, so the chain still starts at the model.
+        /// </summary>
+        internal bool IsWideningOfParameter(Expression? node) =>
+            node is UnaryExpression { NodeType: ExpressionType.Convert, Operand: var operand } conversion &&
+            operand == lambdaExpression.Parameters[0] && conversion.Type.IsAssignableFrom(operand.Type);
 
         /// <summary>
         /// Root-first dotted path of the member-access chain, e.g. <c>x => x.Policy.Max</c> → <c>"Policy.Max"</c>. <c>Nullable&lt;T&gt;.Value</c> hops are

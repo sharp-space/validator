@@ -299,7 +299,8 @@ internal static class ElementsAccessorCache<TModel, TProperty>
     // Null-safe collection accessor: a null intermediate (x => x.Order.Items where Order is null) yields a null
     // collection instead of throwing, which the evaluator already treats as "skip".
     // Unlike the property accessor a tuple is unnecessary — null is a representable "absent" here. Its selector passed
-    // EnsureChainSelector where the chain was declared, so the chain starts at the lambda's parameter.
+    // EnsureChainSelector where the chain was declared, so the chain starts at the lambda's parameter, or at that
+    // parameter converted to a type it already is, as a generic model reads its constraint's members.
     private static Func<TModel, IEnumerable<TProperty>?> Build(LambdaExpression expression)
     {
         var unaries = AccessorExpressions.UnariesOver(expression.Body, out var node);
@@ -319,7 +320,8 @@ internal static class ElementsAccessorCache<TModel, TProperty>
         var locals = new List<ParameterExpression>();
         var body = new List<Expression>();
 
-        Expression current = parameter;
+        // The root is the parameter or its widening conversion, neither of which can be null where the parameter isn't.
+        var current = node!;
         var chain = members.ToArray();
         for (var index = 0; index < chain.Length - 1; index++)
         {
